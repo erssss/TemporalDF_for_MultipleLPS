@@ -44,7 +44,89 @@ class graph:
         if x == self.n+1:
             return 0
         return abs(goal[1]-self.multi_y[x][next[1]])
+    
+def cal_all_regloss(multi_y,X,n,m,k):
+    regloss = np.zeros((n-k+1,pow(m,k)))
+    for i in range(n-k+1):
+        for j in range(pow(m,k)):
+            sel = []
+            index = j
+            for p in range(k):
+                index = (j %pow(m,k-p))//pow(m,k-p-1)
+                sel.append(multi_y[i+p][index])
+            # print(i,j,sel)
+            regloss[i][j] = get_k_reg(X[i:i+k],sel)
+    return regloss
 
+def DFRT(multi_y,X,win):
+    mid = np.median(multi_y,axis=1)
+    delta_y = abs(multi_y-mid.reshape(-1,1))
+    n = X.shape[0]
+    win = n**0.7
+    print(win)
+    if n**0.7<100:
+        win = 100
+    num = int(n/win)
+    selection = []
+    last = 0
+    intervals = np.linspace(0, n, num+1, dtype=int)
+    # print(num,intervals)
+    for i in intervals[1:]:
+        selection.extend(A_star(i-last, multi_y[last:i], delta_y[last:i], "dumb"))
+        last = i
+    return selection
+
+def dfs(multi_y,X,points,k,apploss,regloss):
+    n=multi_y.shape[0]
+    m=multi_y.shape[1]
+    path_loss = [0 for i in range(n)]
+    path=[[-1,0]]
+    depth = 0
+    cost = 0
+    best_sel = []
+    min_cost = apploss
+    while(path!=[]):
+        path[-1][0]+=1
+        depth = len(path)
+        if path[-1][0]>=m:
+            while( path[-1][0]==m):
+                path.pop()
+                depth-=1
+                if len(path)>0:
+                    path[-1][0]+=1
+                else:
+                    break
+        if depth==0:
+            break
+        point=points[depth-1][path[-1][0]]
+        if depth>=k:
+            index = sum([path[depth-k+i][0]*pow(m,k-i-1) for i in range(k)])
+            loss_ = regloss[depth-k,index]
+
+            path[-1][1]=loss_
+            cost =sum([path[i][1] for i in range(len(path))])
+            if cost>min_cost:
+                continue
+            if depth==n:
+                min_cost=min(min_cost,cost)
+                if cost == min_cost:
+                    best_sel=copy.deepcopy(path)
+                continue
+        path.append([-1,0])
+    return best_sel,min_cost
+
+def bfs(multi_y,X,k):
+    n=multi_y.shape[0]
+    m=multi_y.shape[1]
+    sels,paths_loss = bfs_p(multi_y[0:k,:],X[0:k],k,edge=-1)
+    paths = sels
+    for i in range(1,n-k):
+        sels,paths_loss = bfs_p(multi_y[i:i+k,:],X[i:i+k],k,edge=0,before_loss=paths_loss)
+        paths = np.hstack((paths,sels))
+    sels,paths_loss = bfs_p(multi_y[n-k:n,:],X[n-k:n],k,edge=1,before_loss=paths_loss)
+    paths = np.hstack((paths,sels))
+    # print("paths",paths,"path_loss",paths_loss)
+    return paths,paths_loss
 
 def a_star(graph,no_h=False):
     frontier = PriorityQueue()
@@ -193,7 +275,7 @@ def bfs_appro(multi_y,X,k):
     paths = np.hstack((paths,sels))
     return paths,paths_loss
 
-def appro_dp(multi_y,X,k,cluster_num=2):
+def appro_dp(multi_y,X,k,cluster_num=3):
     n=multi_y.shape[0]
     m=multi_y.shape[1]
     appro_graph,epsilon = get_appro_graph(n,multi_y,cluster_num)
@@ -214,6 +296,24 @@ def appro_dp(multi_y,X,k,cluster_num=2):
     path.extend(paths[best_sel,n-k+1:])
     return path,min(paths_loss)
 
+def DFDP(multi_y,X,k):
+    n=multi_y.shape[0]
+    m=multi_y.shape[1]
+    paths,paths_loss = bfs(multi_y,X,k)
+    # print(paths.shape)
+    # print(paths)
+    best_sel = paths_loss.index(min(paths_loss))
+    idx = int(paths[best_sel,n-k+1])
+    cur_sel = best_sel
+    selection=[]
+    for i in reversed(range(n-k+1)):
+        next_idx = int(paths[cur_sel,i])
+        selection.append(multi_y[i,((next_idx)//pow(m,k-2))])
+        cur_sel = next_idx
+    selection = list(reversed(selection))
+    selection.extend(paths[best_sel,n-k+1:])
+    return selection,min(paths_loss)
+
 
 def get_k_reg(X,sel):
     n = len(sel)
@@ -230,58 +330,6 @@ def get_k_reg(X,sel):
     return loss
 import copy
 
-
-def cal_all_regloss(multi_y,X,n,m,k):
-    regloss = np.zeros((n-k+1,pow(m,k)))
-    for i in range(n-k+1):
-        for j in range(pow(m,k)):
-            sel = []
-            index = j
-            for p in range(k):
-                index = (j %pow(m,k-p))//pow(m,k-p-1)
-                sel.append(multi_y[i+p][index])
-            # print(i,j,sel)
-            regloss[i][j] = get_k_reg(X[i:i+k],sel)
-    return regloss
-
-def dfs(multi_y,X,points,k,apploss,regloss):
-    n=multi_y.shape[0]
-    m=multi_y.shape[1]
-    path_loss = [0 for i in range(n)]
-    path=[[-1,0]]
-    depth = 0
-    cost = 0
-    best_sel = []
-    min_cost = apploss
-    while(path!=[]):
-        path[-1][0]+=1
-        depth = len(path)
-        if path[-1][0]>=m:
-            while( path[-1][0]==m):
-                path.pop()
-                depth-=1
-                if len(path)>0:
-                    path[-1][0]+=1
-                else:
-                    break
-        if depth==0:
-            break
-        point=points[depth-1][path[-1][0]]
-        if depth>=k:
-            index = sum([path[depth-k+i][0]*pow(m,k-i-1) for i in range(k)])
-            loss_ = regloss[depth-k,index]
-
-            path[-1][1]=loss_
-            cost =sum([path[i][1] for i in range(len(path))])
-            if cost>min_cost:
-                continue
-            if depth==n:
-                min_cost=min(min_cost,cost)
-                if cost == min_cost:
-                    best_sel=copy.deepcopy(path)
-                continue
-        path.append([-1,0])
-    return best_sel,min_cost
 
 def bfs_p(multi_y,X,k,edge = 0,before_loss = None):
     n=multi_y.shape[0]
@@ -343,18 +391,7 @@ def bfs_p(multi_y,X,k,edge = 0,before_loss = None):
 
 
 
-def bfs(multi_y,X,k):
-    n=multi_y.shape[0]
-    m=multi_y.shape[1]
-    sels,paths_loss = bfs_p(multi_y[0:k,:],X[0:k],k,edge=-1)
-    paths = sels
-    for i in range(1,n-k):
-        sels,paths_loss = bfs_p(multi_y[i:i+k,:],X[i:i+k],k,edge=0,before_loss=paths_loss)
-        paths = np.hstack((paths,sels))
-    sels,paths_loss = bfs_p(multi_y[n-k:n,:],X[n-k:n],k,edge=1,before_loss=paths_loss)
-    paths = np.hstack((paths,sels))
-    # print("paths",paths,"path_loss",paths_loss)
-    return paths,paths_loss
+
 
 
 from sklearn.cluster import KMeans
@@ -371,6 +408,7 @@ def get_appro_graph(n,multi_y,k,cluster_num,method="kmean"):
             kmeans = KMeans(n_clusters=cluster_num, random_state=42, n_init=10)
             kmeans.fit(multi_y[i].reshape(-1, 1))
             labels = kmeans.labels_
+            centroids = kmeans.cluster_centers_
             mid = np.median(multi_y[i])
             for cluster_idx in range(cluster_num):
                 cluster_points = multi_y[i][labels == cluster_idx]
@@ -422,27 +460,7 @@ def get_appro_graph(n,multi_y,k,cluster_num,method="kmean"):
     epsilon = max(max_distance_indices)
     return new_graph,epsilon
 
-def DFDP(multi_y,X,k):
-    n=multi_y.shape[0]
-    m=multi_y.shape[1]
-    paths,paths_loss = bfs(multi_y,X,k)
-    # print(paths.shape)
-    # print(paths)
-    best_sel = paths_loss.index(min(paths_loss))
-    idx = int(paths[best_sel,n-k+1])
-    cur_sel = best_sel
-    selection=[]
-    for i in reversed(range(n-k+1)):
-        next_idx = int(paths[cur_sel,i])
-        selection.append(multi_y[i,((next_idx)//pow(m,k-2))])
-        cur_sel = next_idx
-    selection = list(reversed(selection))
-    selection.extend(paths[best_sel,n-k+1:])
-    return selection,min(paths_loss)
-
-
-
-def DFRC(multi_y,t,k,cluster_num,method="kmean"):
+def DFRC(multi_y,t,k,cluster_num=2,method="kmean"):
     n=multi_y.shape[0]
     m=multi_y.shape[1]
     appro_graph,epsilon = get_appro_graph(n,multi_y,k,cluster_num,method)
@@ -451,18 +469,3 @@ def DFRC(multi_y,t,k,cluster_num,method="kmean"):
     delta = 0
     return selection,loss,delta
     
-
-def DFRT(n,multi_y,win=0):
-    mid = np.median(multi_y,axis=1)
-    delta_y = abs(multi_y-mid.reshape(-1,1))
-    if win==0:
-        win = n**0.8
-    num = int(n/win)
-    selection = []
-    last = 0
-    intervals = np.linspace(0, n, num+1, dtype=int)
-    # print(num,intervals)
-    for i in intervals[1:]:
-        selection.extend(A_star(i-last, multi_y[last:i], delta_y[last:i], "dumb"))
-        last = i
-    return selection

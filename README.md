@@ -1,31 +1,41 @@
 
-## Directory
+
+- This repository is for paper High Precision $\neq$ High Cost: Temporal Data Fusion for Multiple Low-Precision Sensors.
+
+
+## File Structure
+
+- code: source code of algorithms.
+  - The functions have the same names as the algorithms in the paper.
+  - As for TruthFinder, Sums, Investment, CRH, GATD, we use the open source implemenations for them, i.e.,
+    - TruthFinder, Sums, Investment: https://github.com/joesingo/truthdiscovery
+    - CRH, GATD: https://sites.google.com/iastate.edu/qili
+- data: dataset source files used in experiments.
+
+## Dataset
+
+- GPS
+  - Manual collection
+  - Format: timestamp(1),observations from different sensors(2-5), true value(6)
+- WEATHER
+  - https://www.aerisweather.com
+  - https://www.worldweatheronline.com/
+  - https://www.wunderground.com/
+- IMU: https://github.com/dusan-nemec/mems-calib
+- GINS: https://github.com/i2Nav-WHU/awesome-gins-datasets
+
+## Dependencies
 
 ```
-│  README.md
-│
-├─code
-│      DF.py
-│
-└─data
-        GPS.csv
-        WEATHER.csv
+numpy==1.24.2
+pyclustering==0.10.1.2
+scikit_learn==1.1.1
 ```
 
-## data
 
-### GPS
+## Instruction
 
-- time,sensor1,sensor2,sensor3,sensor4,true
-
-- timestamp(1),observations from different sensors(2-5),true value(6)
-
-### WEATHER
-
-- time,max_temperature_1,max_temperature_2,max_temperature_3,max_temperature_true,min_temperature_1,min_temperature_2,min_temperature_3,min_temperature_true
-
-- date(1), high temperatures from different sources(2-4),true high temperature(5),low temperatures from different sources(6-8),true low temperature(9),
-
-## code
-
-- The functions have the same name as the algorithm in the paper.
+``` sh
+cd code
+python main.py
+```
