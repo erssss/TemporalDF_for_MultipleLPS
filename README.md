@@ -1,4 +1,3 @@
-# TemporalDF_for_MultipleLPS
 
 ## Directory
 
@@ -29,4 +28,4 @@
 
 ## code
 
-- The function has the same name as the algorithm in the paper.
+- The functions have the same name as the algorithm in the paper.
