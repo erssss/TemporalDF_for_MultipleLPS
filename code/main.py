@@ -5,7 +5,6 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error
 
 data = pd.read_csv('../data/GPS.csv',index_col=None,header=0)
-print("??")
 data.iloc[:,0]=data.iloc[:,0]-data.iloc[0,0]
 X = np.array(data["time"])
 obs = np.array(data[["sensor1","sensor2","sensor3","sensor4"]])
