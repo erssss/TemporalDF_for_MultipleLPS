@@ -28,8 +28,10 @@
 
 ```
 numpy==1.24.2
+pandas==1.4.3
 pyclustering==0.10.1.2
 scikit_learn==1.1.1
+
 ```
 
 
