@@ -1,7 +1,4 @@
-
-
 - This repository is for paper High Precision $\neq$ High Cost: Temporal Data Fusion for Multiple Low-Precision Sensors.
-
 
 ## File Structure
 
@@ -34,10 +31,23 @@ scikit_learn==1.1.1
 
 ```
 
-
 ## Instruction
 
-``` sh
+To run the program, use the following command-line arguments:
+
+- `--dataname`: Input file name (default is "GPS").
+- `--alg`: Method name (default is "DFDP").
+- `--k`: The parameter kappa (default is 3).
+
+eg.
+
+```bash
+main.py --data GPS --alg DFRC --k 3
+```
+
+or you can run directly:
+
+```sh
 cd code
 python main.py
 ```

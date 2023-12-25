@@ -62,10 +62,6 @@ def DFRT(multi_y,X,win):
     mid = np.median(multi_y,axis=1)
     delta_y = abs(multi_y-mid.reshape(-1,1))
     n = X.shape[0]
-    win = n**0.7
-    print(win)
-    if n**0.7<100:
-        win = 100
     num = int(n/win)
     selection = []
     last = 0
