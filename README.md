@@ -8,6 +8,7 @@
     - TruthFinder, Sums, Investment: https://github.com/joesingo/truthdiscovery
     - CRH, GATD: https://sites.google.com/iastate.edu/qili
 - data: dataset source files used in experiments.
+- full.pdf: the full version of our manuscript, including all the complete proofs in appendix.
 
 ## Dataset
 
@@ -18,6 +19,7 @@
   - https://www.aerisweather.com
   - https://www.worldweatheronline.com/
   - https://www.wunderground.com/
+  - run gen_weather.py with the ID get from the official website and parameters specified in the given URL.
 - IMU: https://github.com/dusan-nemec/mems-calib
 - GINS: https://github.com/i2Nav-WHU/awesome-gins-datasets
 
