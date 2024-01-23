@@ -19,7 +19,7 @@
   - https://www.aerisweather.com
   - https://www.worldweatheronline.com/
   - https://www.wunderground.com/
-  - run gen_weather.py with the ID get from the official website and parameters specified in the given URL.
+  - run gen_weather.py with the ID get from the official website and parameters specified in the code.
 - IMU: https://github.com/dusan-nemec/mems-calib
 - GINS: https://github.com/i2Nav-WHU/awesome-gins-datasets
 
